@@ -1,18 +1,26 @@
+# -*- coding: utf-8 -*-
 '''
-    @date: 2021-10-3
-    @author: Li Jinxing
+@date: 2021-10-3
+@author: Li Jinxing, Chu Yumo
 
 '''
-# -*- coding: utf-8 -*-
 import requests
 import json
 import urllib.parse
+import smtplib
+from os import environ 
+from email.mime.text import MIMEText
+
+MAIL_USERNAME = environ['MAIL_USERNAME']
+MAIL_PASSWORD = environ['MAIL_PASSWORD']
+MAIL_SERVER = environ['MAIL_SERVER']
+MAIL_PORT = int(environ['MAIL_PORT']) 
 
 URL_SESSION = 'http://bjut.sanyth.com:81/nonlogin/qywx/authentication.htm?appId=402880c97b1aa5f7017b1ad2bd97001b&urlb64=L3dlaXhpbi9zYW55dGgvaG9tZS5odG1s'
 URL_CLOCKIN = 'http://bjut.sanyth.com:81/syt/zzapply/operation.htm'
 
 # Part0 Read user info
-with open('./info.json', 'r') as f:
+with open('./info.json', 'r', encoding='utf8') as f:
     core = json.load(f)
 
 # Part1 Get session
@@ -82,10 +90,31 @@ DATA = prefix_raw + suffix_raw
 # Part3 Clock in
 response_clockin = requests.post(url=URL_CLOCKIN, headers=HEADER, data=DATA)
 
+result = '打卡失败'
+
 if response_clockin.text == 'success':
-    print('成功打卡')
+    result = '成功打卡'
 else:
     if response_clockin.text == 'Applied today':
-        print('今天已经打过卡')
+        result = '今天已经打过卡'
     else:
-        print('打卡失败')
+        result += f'''
+HTTP status code: {response_clockin.status_code}
+打卡数据: 
+{
+    json.dumps(info, ensure_ascii=False, sort_keys=True, indent=2)
+}
+
+'''
+# 单引号
+# 类似 js 的 `` 也被用来写注释
+message =  MIMEText(result, 'plain', 'utf8')
+message['Subject'] = '疫情通打卡结果'
+message['FROM'] = MAIL_USERNAME
+message['To'] = MAIL_USERNAME
+
+smtpObject = smtplib.SMTP_SSL(MAIL_SERVER)
+smtpObject.connect(MAIL_SERVER, MAIL_PORT)
+smtpObject.login(MAIL_USERNAME, MAIL_PASSWORD)
+
+smtpObject.sendmail(MAIL_USERNAME, [MAIL_USERNAME], message.as_string()) 

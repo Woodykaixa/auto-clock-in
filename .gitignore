@@ -1,1 +1,3 @@
 x.json
+venv/
+.env
