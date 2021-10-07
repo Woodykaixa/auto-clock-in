@@ -90,24 +90,24 @@ DATA = prefix_raw + suffix_raw
 # Part3 Clock in
 response_clockin = requests.post(url=URL_CLOCKIN, headers=HEADER, data=DATA)
 
-result = '打卡失败'
+result = '记得每七天更换 id 和 token\n'
 
 if response_clockin.text == 'success':
-    result = '成功打卡'
+    result += '成功打卡'
 else:
     if response_clockin.text == 'Applied today':
-        result = '今天已经打过卡'
+        result += '今天已经打过卡'
     else:
-        result += f'''
+        result += f'''打卡失败
 HTTP status code: {response_clockin.status_code}
+是不是忘记换 id 和 token 了？
 打卡数据: 
 {
     json.dumps(info, ensure_ascii=False, sort_keys=True, indent=2)
 }
 
 '''
-# 单引号
-# 类似 js 的 `` 也被用来写注释
+
 message =  MIMEText(result, 'plain', 'utf8')
 message['Subject'] = '疫情通打卡结果'
 message['FROM'] = MAIL_USERNAME
