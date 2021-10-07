@@ -90,7 +90,8 @@ DATA = prefix_raw + suffix_raw
 # Part3 Clock in
 response_clockin = requests.post(url=URL_CLOCKIN, headers=HEADER, data=DATA)
 
-result = '记得每七天更换 id 和 token\n'
+result = '''记得每七天更换 id 和 token
+'''
 
 if response_clockin.text == 'success':
     result += '成功打卡'
@@ -110,7 +111,7 @@ HTTP status code: {response_clockin.status_code}
 
 message =  MIMEText(result, 'plain', 'utf8')
 message['Subject'] = '疫情通打卡结果'
-message['FROM'] = MAIL_USERNAME
+message['FROM'] = 'Github Actions 打卡脚本'
 message['To'] = MAIL_USERNAME
 
 smtpObject = smtplib.SMTP_SSL(MAIL_SERVER)
